@@ -1,0 +1,34 @@
+{
+  "name": "game-release-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/bot.js",
+    "watch": "tsc -w",
+    "dev": "nodemon dist/bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rbarbazz/game-release-bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rbarbazz/game-release-bot/issues"
+  },
+  "homepage": "https://github.com/rbarbazz/game-release-bot#readme",
+  "dependencies": {
+    "discord.js": "^11.5.1",
+    "dotenv": "^8.2.0",
+    "node-fetch": "^2.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.11.7",
+    "@types/node-fetch": "^2.5.2",
+    "nodemon": "^1.19.4",
+    "typescript": "^3.6.4"
+  }
+}
