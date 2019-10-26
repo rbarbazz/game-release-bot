@@ -1,11 +1,17 @@
 import { Client } from 'discord.js';
 import { MongoClient } from 'mongodb';
 
-import { searchCommand, addCommand } from './commands';
+import { searchCommand, addCommand, listCommand } from './commands';
+import { sendCodeMessage } from './sendMessage';
 
 require('dotenv').config();
 const discordClient = new Client();
 const prefix = '!';
+export const getDbClient = () =>
+  new MongoClient(process.env.DB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 
 discordClient.on('ready', () => {
   console.log(`Logged in as ${discordClient.user.tag}!`);
@@ -21,12 +27,13 @@ discordClient.on('message', message => {
     searchCommand(args, message);
   } else if (command === 'add') {
     addCommand(args, message);
+  } else if (command === 'list') {
+    listCommand(args, message);
+  } else if (command === 'help') {
+    sendCodeMessage(message.channel, '!search [game]\n==============\nSearch for a game\n\n!add [game]\n===========\nAdd a game to your list\n\n!list\n=====\nShow your list\n\n!help\n=====\nShow this message', true);
+  } else {
+    sendCodeMessage(message.channel, 'Wut?!');
   }
 });
 
 discordClient.login(process.env.BOT_TOKEN);
-
-export const dbClient = new MongoClient(process.env.DB_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});

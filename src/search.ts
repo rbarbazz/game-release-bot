@@ -4,7 +4,7 @@ const apiUrl = 'https://api.rawg.io/api/games';
 
 export const searchGames = async (gameTitle: string) => {
   const response = await fetch(`${apiUrl}?search=${gameTitle}&page_size=10`);
-  const data: { results: SearchResult[] } = await response.json();
+  const data: { results: GameSearchResult[] } = await response.json();
   const { results } = data;
 
   if (results.length > 0) {

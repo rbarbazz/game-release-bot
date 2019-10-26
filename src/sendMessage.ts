@@ -12,21 +12,25 @@ export const sendCodeMessage = async (
   }
 };
 
-export const sendGameList = (
-  results: SearchResult[],
-  channel: Message['channel'],
-  add = false,
-) => {
-  const gameList = results
-    .map((result, index) => {
-      const { released, tba } = result;
+export const formatGameList = (list: BaseGameDetails[]) => {
+  return list
+    .map((item, index) => {
+      const { released = '', tba, name } = item;
       const gameIndex = `${(index + 1).toString()}.`.padEnd(4, ' ');
-      const gameTitle = `< ${result.name.slice(0, 29)}${
-        result.name.length > 30 ? '…' : ''
-      } >`.padEnd(35, ' ');
+      const gameTitle = `< ${name.slice(0, 28)}${
+        name.length > 29 ? '…' : ''
+      } >`.padEnd(34, ' ');
       return `${gameIndex}${gameTitle}<${tba ? 'TBA' : released}>`;
     })
     .join('\n');
+};
+
+export const sendGameList = (
+  results: GameSearchResult[],
+  channel: Message['channel'],
+  add = false,
+) => {
+  const gameList = formatGameList(results);
 
   sendCodeMessage(channel, gameList, true);
   sendCodeMessage(
