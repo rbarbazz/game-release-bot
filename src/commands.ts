@@ -1,42 +1,54 @@
 import { Message, User } from 'discord.js';
+import { MongoClient } from 'mongodb';
 
 import { sendCodeMessage, sendGameList, formatGameList } from './sendMessage';
 import { searchGames, getGameDetails } from './search';
 import { getDbClient } from './bot';
 
 const gamePrefixUrl = 'https://rawg.io/games/';
-const selectGameFromList = async (
+
+const collectIndexFromUser = async (
   message: Message,
-  results: GameSearchResult[],
-): Promise<GameDetail> => {
+  maxLength: number,
+): Promise<number> => {
   const { channel, author } = message;
   const filter = (
     response: { content: string; author: User },
     author: User,
-    results: GameSearchResult[],
+    maxLength: number,
   ) => {
     if (response.author.id !== author.id) return false;
     const responseInt = parseInt(response.content) - 1;
 
-    return responseInt <= results.length && responseInt >= -1;
+    return responseInt <= maxLength && responseInt >= -1;
   };
 
   const collected = await channel.awaitMessages(
-    response => filter(response, author, results),
+    response => filter(response, author, maxLength),
     {
       maxMatches: 1,
       time: 30000,
       errors: ['time'],
     },
   );
-  const collectedIndex = parseInt(collected.first().content) - 1;
-  if (collectedIndex === -1) {
-    sendCodeMessage(channel, 'Operation cancelled');
-    return null;
-  }
+  return parseInt(collected.first().content) - 1;
+};
 
-  const gameSelected = results[collectedIndex];
-  return await getGameDetails(gameSelected.id);
+const getUserGameList = async (message: Message, dbClient: MongoClient) => {
+  const { author } = message;
+  const users = dbClient.db('game-release-bot').collection('users');
+  const games = dbClient.db('game-release-bot').collection('games');
+  const currentUser: UserEntry = await users.findOne({ userId: author.id });
+  if (currentUser === null) return [];
+
+  let userGameList = await games
+    .find({ gameId: { $in: currentUser.gameList } })
+    .toArray();
+  userGameList.sort(
+    (a, b) =>
+      a.tba || new Date(a.released).getTime() - new Date(b.released).getTime(),
+  );
+  return userGameList;
 };
 
 export const searchCommand = async (args: string[], message: Message) => {
@@ -46,8 +58,13 @@ export const searchCommand = async (args: string[], message: Message) => {
   if (results.length > 0) {
     sendGameList(results, channel);
     try {
-      const gameDetails = await selectGameFromList(message, results);
-      if (gameDetails === null) return;
+      const indexSelected = await collectIndexFromUser(message, results.length);
+      if (indexSelected === -1) {
+        sendCodeMessage(channel, 'Operation cancelled');
+        return;
+      }
+      const gameSelected = results[indexSelected];
+      const gameDetails = await getGameDetails(gameSelected.id);
 
       sendCodeMessage(
         channel,
@@ -69,8 +86,13 @@ export const addCommand = async (args: string[], message: Message) => {
     sendGameList(results, channel, true);
 
     try {
-      const gameDetails = await selectGameFromList(message, results);
-      if (gameDetails === null) return;
+      const indexSelected = await collectIndexFromUser(message, results.length);
+      if (indexSelected === -1) {
+        sendCodeMessage(channel, 'Operation cancelled');
+        return;
+      }
+      const gameSelected = results[indexSelected];
+      const gameDetails = await getGameDetails(gameSelected.id);
 
       const dbClient = getDbClient();
       dbClient.connect(error => {
@@ -124,7 +146,31 @@ export const addCommand = async (args: string[], message: Message) => {
   }
 };
 
-export const listCommand = (args: string[], message: Message) => {
+export const listCommand = (message: Message) => {
+  const { channel } = message;
+  const dbClient = getDbClient();
+
+  dbClient.connect(async error => {
+    if (error !== null) {
+      console.error(error);
+      return;
+    }
+
+    const userGameList = await getUserGameList(message, dbClient);
+    if (userGameList.length === 0) {
+      sendCodeMessage(channel, 'Your list is empty!');
+      dbClient.close();
+      return;
+    }
+
+    const gameListStr = formatGameList(userGameList);
+    sendCodeMessage(channel, gameListStr, true);
+
+    dbClient.close();
+  });
+};
+
+export const rmCommand = (message: Message) => {
   const { channel, author } = message;
   const dbClient = getDbClient();
 
@@ -134,25 +180,43 @@ export const listCommand = (args: string[], message: Message) => {
       return;
     }
 
-    const users = dbClient.db('game-release-bot').collection('users');
-    const games = dbClient.db('game-release-bot').collection('games');
-    const currentUser: UserEntry = await users.findOne({ userId: author.id });
-    if (currentUser === null) {
-      sendCodeMessage(channel, "You don't have a list yet!");
+    const userGameList = await getUserGameList(message, dbClient);
+    if (userGameList.length === 0) {
+      sendCodeMessage(channel, 'Your list is empty!');
+      dbClient.close();
       return;
     }
 
-    let userGameList = await games
-      .find({ gameId: { $in: currentUser.gameList } })
-      .toArray();
-    userGameList.sort(
-      (a, b) =>
-        a.tba ||
-        new Date(a.released).getTime() - new Date(b.released).getTime(),
-    );
     const gameListStr = formatGameList(userGameList);
     sendCodeMessage(channel, gameListStr, true);
+    sendCodeMessage(
+      channel,
+      `Submit an index [1-${userGameList.length}] to remove the game from your list or 0 to cancel`,
+    );
 
+    const indexSelected = await collectIndexFromUser(
+      message,
+      userGameList.length,
+    );
+    if (indexSelected === -1) {
+      sendCodeMessage(channel, 'Operation cancelled');
+      return;
+    }
+    const gameSelected: GameEntry = userGameList[indexSelected];
+    const users = dbClient.db('game-release-bot').collection('users');
+    users.updateOne(
+      { userId: author.id },
+      {
+        $pull: {
+          gameList: gameSelected.gameId,
+        },
+      },
+    );
+    sendCodeMessage(
+      channel,
+      `< ${gameSelected.name} > removed from your list`,
+      true,
+    );
     dbClient.close();
   });
 };

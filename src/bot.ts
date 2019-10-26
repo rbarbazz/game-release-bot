@@ -1,7 +1,7 @@
 import { Client } from 'discord.js';
 import { MongoClient } from 'mongodb';
 
-import { searchCommand, addCommand, listCommand } from './commands';
+import { searchCommand, addCommand, listCommand, rmCommand } from './commands';
 import { sendCodeMessage } from './sendMessage';
 
 require('dotenv').config();
@@ -27,10 +27,16 @@ discordClient.on('message', message => {
     searchCommand(args, message);
   } else if (command === 'add') {
     addCommand(args, message);
+  } else if (command === 'rm') {
+    rmCommand(message);
   } else if (command === 'list') {
-    listCommand(args, message);
+    listCommand(message);
   } else if (command === 'help') {
-    sendCodeMessage(message.channel, '!search [game]\n==============\nSearch for a game\n\n!add [game]\n===========\nAdd a game to your list\n\n!list\n=====\nShow your list\n\n!help\n=====\nShow this message', true);
+    sendCodeMessage(
+      message.channel,
+      '!search [game]\n==============\nSearch for a game\n\n!add [game]\n===========\nAdd a game to your list\n\n!list\n=====\nShow your list\n\n!rm\n===\nRemove an item form your list\n\n!help\n=====\nShow this message',
+      true,
+    );
   } else {
     sendCodeMessage(message.channel, 'Wut?!');
   }

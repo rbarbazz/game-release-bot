@@ -5,7 +5,7 @@ interface BaseGameDetails {
   tba: boolean;
 }
 
-// Api response models
+// API response models
 interface GameSearchResult extends BaseGameDetails {
   id: number;
 }
@@ -14,7 +14,7 @@ interface GameDetail extends GameSearchResult {
   slug: string;
 }
 
-// Db models
+// DB models
 interface GameEntry extends BaseGameDetails {
   gameId: number;
 }
