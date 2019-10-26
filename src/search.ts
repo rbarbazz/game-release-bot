@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-import { apiUrl } from './bot';
+const apiUrl = 'https://api.rawg.io/api/games';
 
 export const searchGames = async (gameTitle: string) => {
   const response = await fetch(`${apiUrl}?search=${gameTitle}&page_size=10`);

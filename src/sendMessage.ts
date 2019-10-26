@@ -1,40 +1,38 @@
 import { Message } from 'discord.js';
 
-export const stripHtml = (str: string): string => {
-  str = str.replace(/<p>/g, '');
-  str = str.replace(/<\/p>/g, '\n');
-  return str.replace(/<br \/>/g, '\n');
-};
-
 export const sendCodeMessage = async (
   channel: Message['channel'],
   message: string,
   md = false,
-  files = {},
 ): Promise<Message | Message[]> => {
-  return await channel.send(
-    `\`\`\`${md ? 'md\n\n' : ''}${message}\`\`\``,
-    files,
-  );
+  try {
+    return await channel.send(`\`\`\`${md ? 'md\n\n' : ''}${message}\`\`\``);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export const sendGameList = (
   results: SearchResult[],
   channel: Message['channel'],
+  add = false,
 ) => {
   const gameList = results
     .map((result, index) => {
+      const { released, tba } = result;
       const gameIndex = `${(index + 1).toString()}.`.padEnd(4, ' ');
       const gameTitle = `< ${result.name.slice(0, 29)}${
         result.name.length > 30 ? '…' : ''
       } >`.padEnd(35, ' ');
-      return `${gameIndex}${gameTitle}<${result.released}>`;
+      return `${gameIndex}${gameTitle}<${tba ? 'TBA' : released}>`;
     })
     .join('\n');
 
   sendCodeMessage(channel, gameList, true);
   sendCodeMessage(
     channel,
-    'Type an index [1-10] to get more info about the game',
+    `Submit an index [1-${results.length}] ${
+      add ? 'to add the game to your list' : 'to get more info about the game'
+    } or 0 to cancel`,
   );
 };

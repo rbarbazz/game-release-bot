@@ -2,9 +2,10 @@ interface SearchResult {
   id: number;
   name: string;
   released: string;
-  background_image: string;
+  tba: boolean;
 }
 
 interface GameDetail extends SearchResult {
-  description: string;
+  description_raw: string;
+  slug: string;
 }
