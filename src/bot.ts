@@ -46,7 +46,7 @@ discordClient.on('message', message => {
 
 discordClient.login(process.env.BOT_TOKEN);
 
-const dailytasks = schedule.scheduleJob('1 0 * * *', () => {
+const dailytasks = schedule.scheduleJob('0 12 * * *', () => {
   updateReleaseDates();
   sendReminders();
 });
