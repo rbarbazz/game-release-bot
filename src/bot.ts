@@ -8,7 +8,7 @@ import { updateReleaseDates, sendReminders } from './tasks';
 
 require('dotenv').config();
 export const discordClient = new Client();
-const prefix = '!';
+export const prefix = '!';
 export const getDbClient = () =>
   new MongoClient(process.env.DB_URL, {
     useNewUrlParser: true,

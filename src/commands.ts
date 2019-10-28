@@ -3,7 +3,7 @@ import { MongoClient } from 'mongodb';
 
 import { sendCodeMessage, sendGameList, formatGameList } from './sendMessage';
 import { searchGames, getGameDetails } from './search';
-import { getDbClient } from './bot';
+import { getDbClient, prefix } from './bot';
 
 const gamePrefixUrl = 'https://rawg.io/games/';
 
@@ -20,7 +20,10 @@ const collectIndexFromUser = async (
     if (response.author.id !== author.id) return false;
     const responseInt = parseInt(response.content) - 1;
 
-    return responseInt <= maxLength && responseInt >= -1;
+    return (
+      response.content.startsWith(prefix) ||
+      (responseInt < maxLength && responseInt >= -1)
+    );
   };
 
   const collected = await channel.awaitMessages(
@@ -31,7 +34,10 @@ const collectIndexFromUser = async (
       errors: ['time'],
     },
   );
-  return parseInt(collected.first().content) - 1;
+  const { content } = collected.first();
+
+  if (content.startsWith(prefix)) return -1;
+  return parseInt(content) - 1;
 };
 
 const getUserGameList = async (message: Message, dbClient: MongoClient) => {
