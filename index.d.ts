@@ -19,5 +19,6 @@ interface GameEntry extends BaseGameDetails {
   gameId: number;
 }
 interface UserEntry {
+  userId: string;
   gameList: number[];
 }

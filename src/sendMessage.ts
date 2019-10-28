@@ -1,7 +1,7 @@
-import { Message } from 'discord.js';
+import { Message, User } from 'discord.js';
 
 export const sendCodeMessage = async (
-  channel: Message['channel'],
+  channel: Message['channel'] | User,
   message: string,
   md = false,
 ): Promise<Message | Message[]> => {

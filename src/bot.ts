@@ -1,11 +1,13 @@
 import { Client } from 'discord.js';
 import { MongoClient } from 'mongodb';
+import * as schedule from 'node-schedule';
 
 import { searchCommand, addCommand, listCommand, rmCommand } from './commands';
 import { sendCodeMessage } from './sendMessage';
+import { updateReleaseDates, sendReminders } from './tasks';
 
 require('dotenv').config();
-const discordClient = new Client();
+export const discordClient = new Client();
 const prefix = '!';
 export const getDbClient = () =>
   new MongoClient(process.env.DB_URL, {
@@ -43,3 +45,8 @@ discordClient.on('message', message => {
 });
 
 discordClient.login(process.env.BOT_TOKEN);
+
+const dailytasks = schedule.scheduleJob('1 0 * * *', () => {
+  updateReleaseDates();
+  sendReminders();
+});
