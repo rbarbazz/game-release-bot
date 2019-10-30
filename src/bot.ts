@@ -36,7 +36,7 @@ discordClient.on('message', message => {
   } else if (command === 'help') {
     sendCodeMessage(
       message.channel,
-      '!search [game]\n==============\nSearch for a game\n\n!add [game]\n===========\nAdd a game to your list\n\n!list\n=====\nShow your list\n\n!rm\n===\nRemove an item form your list\n\n!help\n=====\nShow this message',
+      '!search [game]\n==============\nSearch for a game\n\n!add [game]\n===========\nAdd a game to your list\n\n!list\n=====\nShow your list\n\n!rm\n===\nRemove an item from your list\n\n!help\n=====\nShow this message',
       true,
     );
   } else {
