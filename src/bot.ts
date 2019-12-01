@@ -1,12 +1,14 @@
 import { Client } from 'discord.js';
 import { MongoClient } from 'mongodb';
 import * as schedule from 'node-schedule';
+import * as dotenv from 'dotenv';
 
 import { searchCommand, addCommand, listCommand, rmCommand } from './commands';
 import { sendCodeMessage } from './sendMessage';
 import { updateReleaseDates, sendReminders } from './tasks';
 
-require('dotenv').config();
+dotenv.config();
+
 export const discordClient = new Client();
 export const prefix = '!';
 export const getDbClient = () =>
