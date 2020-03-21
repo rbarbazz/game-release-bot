@@ -17,7 +17,7 @@ export const updateReleaseDates = () => {
     allGames.forEach(async game => {
       try {
         const gameDetails = await getGameDetails(game.gameId);
-        games.updateOne(
+        await games.updateOne(
           { gameId: gameDetails.id },
           gameDetails.tba
             ? {

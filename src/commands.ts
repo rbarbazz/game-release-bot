@@ -101,7 +101,7 @@ export const addCommand = async (args: string[], message: Message) => {
       const gameDetails = await getGameDetails(gameSelected.id);
 
       const dbClient = getDbClient();
-      dbClient.connect(error => {
+      dbClient.connect(async error => {
         if (error !== null) {
           console.error(error);
           return;
@@ -109,7 +109,7 @@ export const addCommand = async (args: string[], message: Message) => {
         const users = dbClient.db('game-release-bot').collection('users');
         const games = dbClient.db('game-release-bot').collection('games');
 
-        users.updateOne(
+        await users.updateOne(
           { userId: author.id },
           {
             $addToSet: {
@@ -118,7 +118,7 @@ export const addCommand = async (args: string[], message: Message) => {
           },
           { upsert: true },
         );
-        games.updateOne(
+        await games.updateOne(
           { gameId: gameDetails.id },
           gameDetails.tba
             ? {
@@ -210,7 +210,7 @@ export const rmCommand = (message: Message) => {
     }
     const gameSelected: GameEntry = userGameList[indexSelected];
     const users = dbClient.db('game-release-bot').collection('users');
-    users.updateOne(
+    await users.updateOne(
       { userId: author.id },
       {
         $pull: {
