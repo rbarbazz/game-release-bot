@@ -32,7 +32,7 @@
     "@types/node": "^12.11.7",
     "@types/node-fetch": "^2.5.2",
     "@types/node-schedule": "^1.2.4",
-    "nodemon": "^1.19.4",
+    "nodemon": "^2.0.20",
     "typescript": "^3.6.4"
   }
 }
